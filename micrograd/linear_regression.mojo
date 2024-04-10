@@ -27,9 +27,7 @@ fn main():
     # model
     var w = Value(1)
     var b = Value(0)
-    var params = List[Value]()
-    params.append(w)
-    params.append(b)
+    var params = List(w, b)
 
     # training loop
     var optimizer = SGD(params, learning_rate=LEARNING_RATE)
