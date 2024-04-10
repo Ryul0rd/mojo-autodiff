@@ -25,9 +25,9 @@ fn main():
         test_set.append(Sample(x, y))
 
     # model
-    var w = pointer_init(Value(1))
-    var b = pointer_init(Value(0))
-    var params = List[Pointer[Value]]()
+    var w = Value(1)
+    var b = Value(0)
+    var params = List[Value]()
     params.append(w)
     params.append(b)
 
@@ -42,14 +42,14 @@ fn main():
                 for test_sample in test_set:
                     var x = Value(test_sample[].x)
                     var y_true = Value(test_sample[].y)
-                    var y_pred = w[] * x + b[]
+                    var y_pred = w * x + b
                     var loss = mse(y_pred, y_true)
                     test_loss_acc += loss.data[]
                 print(String('Iteration ') + iteration + ' test loss: ' + (test_loss_acc / TEST_SIZE))
             # train
             var x = Value(train_sample[].x)
             var y_true = Value(train_sample[].y)
-            var y_pred = w[] * x + b[]
+            var y_pred = w * x + b
             var loss = mse(y_pred, y_true)
             loss.backward()
             optimizer.step()
@@ -57,9 +57,9 @@ fn main():
             iteration += 1
     
     print(String('True Weight   : ') + TRUE_WEIGHT)
-    print(String('Learned Weight: ') + w[].data[])
+    print(String('Learned Weight: ') + w.data[])
     print(String('True Bias     : ') + TRUE_BIAS)
-    print(String('Learned Bias  : ') + b[].data[])
+    print(String('Learned Bias  : ') + b.data[])
 
 @value
 struct Sample:

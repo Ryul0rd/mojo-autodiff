@@ -123,16 +123,16 @@ struct Value:
 
 @value
 struct SGD:
-    var params: List[Pointer[Value]]
+    var params: List[Value]
     var learning_rate: Float32
 
     fn step(self):
         for i in range(len(self.params)):
-            self.params[i][].data[] -= self.learning_rate * self.params[i][].grad[]
+            self.params[i].data[] -= self.learning_rate * self.params[i].grad[]
 
     fn zero_grad(self):
         for i in range(len(self.params)):
-            self.params[i][].grad[] = 0
+            self.params[i].grad[] = 0
 
 
 fn pointer_init[T: AnyRegType](*args: T) -> Pointer[T]:
