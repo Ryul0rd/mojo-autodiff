@@ -30,20 +30,31 @@ struct Value:
 
         while len(stack):
             var node = stack[-1]
-            if list_contains(visited, node):
+            if node._is_in(visited):
                 _ = stack.pop_back()
                 topo.append(node)
                 continue
             visited.append(node)
             for i in range(node._n_prev):
                 var child = node._prev[i]
-                if not list_contains(visited, child):
+                if not child._is_in(visited):
                     stack.append(child)
 
         topo.reverse()
         self.grad[] = 1
         for node in topo:
             node[]._backward(node[]._prev, node[].grad[])
+
+    fn _is_in(self, list: List[Value]) -> Bool:
+        for e in list:
+            if (
+                e[].data == self.data
+                and e[].grad == self.grad
+                and int(e[]._prev) == int(self._prev)
+                and e[]._n_prev == self._n_prev
+            ):
+                return True
+        return False
 
     fn __add__(self, rhs: Value) -> Value:
         fn backward(prev: Pointer[Value], grad: Float32):
@@ -105,6 +116,38 @@ struct Value:
     fn __pow__(self, rhs: Float32) -> Value:
         return self ** Value(rhs)
 
+    fn min(self, x: Value) -> Value:
+        fn backward(prev: Pointer[Value], grad: Float32):
+            if prev[0].data[] < prev[1].data[]:
+                prev[0].grad[] += grad
+            else:
+                prev[1].data[] += grad
+
+        var val = Value(self.data[]) if self < x else Value(x.data[])
+        val._prev = pointer_init(self, x)
+        val._n_prev = 2
+        val._backward = backward
+        return val
+
+    fn min(self, x: Float32) -> Value:
+        return self.min(Value(x))
+
+    fn max(self, x: Value) -> Value:
+        fn backward(prev: Pointer[Value], grad: Float32):
+            if prev[0].data[] > prev[1].data[]:
+                prev[0].grad[] += grad
+            else:
+                prev[1].grad[] += grad
+        
+        var val = Value(self.data[]) if self > x else Value(x.data[])
+        val._prev = pointer_init(self, x)
+        val._n_prev = 2
+        val._backward = backward
+        return val
+
+    fn max(self, x: Float32) -> Value:
+        return self.max(Value(x))
+
     fn __str__(self) -> String:
         return String('Value(data=') + self.data[] + ', grad=' + self.grad[] + ')'
 
@@ -114,11 +157,23 @@ struct Value:
         var h3 = hash(int(self._prev))
         return h1 * 31 + h2 * 37 + h3 * 101
 
-    fn __eq__(self, other: Self) -> Bool:
-        return hash(self) == hash(other)
+    fn __eq__(self, other: Value) -> Bool:
+        return self.data[] == other.data[]
 
-    fn __ne__(self, other: Self) -> Bool:
-        return hash(self) != hash(other)
+    fn __ne__(self, other: Value) -> Bool:
+        return self.data[] != other.data[]
+
+    fn __gt__(self, rhs: Value) -> Bool:
+        return self.data[] > rhs.data[]
+
+    fn __gt__(self, rhs: Float32) -> Bool:
+        return self.data[] > rhs
+
+    fn __lt__(self, rhs: Value) -> Bool:
+        return self.data[] < rhs.data[]
+
+    fn __lt__(self, rhs: Float32) -> Bool:
+        return self.data[] < rhs
 
 
 @value
@@ -140,13 +195,6 @@ fn pointer_init[T: AnyRegType](*args: T) -> Pointer[T]:
     for i in range(len(args)):
         ptr[i] = args[i]
     return ptr
-
-
-fn list_contains[T: KeyElement](list: List[T], val: T) -> Bool:
-    for e in list:
-        if e[] == val:
-            return True
-    return False
 
 
 # fn mse(pred: Value, true: Value) -> Value:
