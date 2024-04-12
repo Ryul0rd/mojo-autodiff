@@ -90,6 +90,12 @@ struct MLP:
                 current = relu(current)
         return current
 
+    fn parameters(self) -> List[Value]:
+        var params = List[Value]()
+        for layer in self.layers:
+            params.extend(layer[].parameters())
+        return params
+
 
 fn relu(x: Value) -> Value:
     return x.max(0)
