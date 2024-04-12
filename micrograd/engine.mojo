@@ -37,7 +37,7 @@ struct Value:
             visited.append(node)
             for i in range(node._n_prev):
                 var child = node._prev[i]
-                if not child._is_in(visited):
+                if not child._is_in(visited) and not child._is_in(stack):
                     stack.append(child)
 
         topo.reverse()
@@ -195,11 +195,6 @@ fn pointer_init[T: AnyRegType](*args: T) -> Pointer[T]:
     for i in range(len(args)):
         ptr[i] = args[i]
     return ptr
-
-
-# fn mse(pred: Value, true: Value) -> Value:
-#     var error = (pred - true)
-#     return error * error
 
 
 fn mse(pred: Value, true: Value) -> Value:
