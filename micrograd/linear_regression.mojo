@@ -1,4 +1,4 @@
-from engine import Value, SGD, pointer_init, mse
+from engine import Value, SGD, mse
 from random import random_float64
 
 
