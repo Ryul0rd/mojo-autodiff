@@ -195,7 +195,3 @@ fn pointer_init[T: AnyRegType](*args: T) -> Pointer[T]:
     for i in range(len(args)):
         ptr[i] = args[i]
     return ptr
-
-
-fn mse(pred: Value, true: Value) -> Value:
-    return (pred - true) ** 2

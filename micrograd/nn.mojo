@@ -106,3 +106,7 @@ fn relu(x: List[Value]) -> List[Value]:
     for i in range(len(x)):
         result.append(relu(x[i]))
     return result
+
+
+fn mse(pred: Value, true: Value) -> Value:
+    return (pred - true) ** 2

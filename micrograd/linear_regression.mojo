@@ -1,4 +1,5 @@
-from engine import Value, SGD, mse
+from engine import Value, SGD
+from nn import mse
 from random import random_float64
 
 
