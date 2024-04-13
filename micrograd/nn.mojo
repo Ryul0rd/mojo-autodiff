@@ -110,3 +110,24 @@ fn relu(x: List[Value]) -> List[Value]:
 
 fn mse(pred: Value, true: Value) -> Value:
     return (pred - true) ** 2
+
+
+fn cross_entropy(logits: List[Value], true: Int) -> Value:
+    return neg_log_likelihood(softmax(logits), true)
+
+
+fn softmax(logits: List[Value]) -> List[Value]:
+    var exp_values = List[Value](capacity=len(logits))
+    for logit in logits:
+        exp_values.append(logit[].exp())
+    var exp_sum = Value(0)
+    for exp_val in exp_values:
+        exp_sum = exp_sum + exp_val[]
+    var probs = List[Value](capacity=len(exp_values))
+    for exp_val in exp_values:
+        probs.append(exp_val[] / exp_sum)
+    return probs
+
+
+fn neg_log_likelihood(pred_probs: List[Value], true: Int) -> Value:
+    return -pred_probs[true].log()

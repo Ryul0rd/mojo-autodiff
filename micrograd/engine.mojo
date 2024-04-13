@@ -1,5 +1,5 @@
 from collections import Set
-from math import log
+from math import log, exp
 
 
 @value
@@ -78,6 +78,9 @@ struct Value:
         val._backward = backward
         return val
 
+    fn __neg__(self) -> Value:
+        return Value(0) - self
+
     fn __mul__(self, rhs: Value) -> Value:
         fn backward(prev: Pointer[Value], grad: Float32):
             prev[0].grad[] += grad * prev[1].data[]
@@ -89,7 +92,7 @@ struct Value:
         val._backward = backward
         return val
 
-    fn __div__(self, rhs: Value) -> Value:
+    fn __truediv__(self, rhs: Value) -> Value:
         fn backward(prev: Pointer[Value], grad: Float32):
             prev[0].grad[] += grad / prev[1].data[]
             prev[1].grad[] += grad * prev[0].data[]
@@ -147,6 +150,26 @@ struct Value:
 
     fn max(self, x: Float32) -> Value:
         return self.max(Value(x))
+
+    fn log(self) -> Value:
+        fn backward(prev: Pointer[Value], grad: Float32):
+            prev[0].grad[] += 1 / prev[0].data[] * grad
+
+        var val = Value(log(self.data[]))
+        val._prev = pointer_init(self)
+        val._n_prev = 1
+        val._backward = backward
+        return val
+
+    fn exp(self) -> Value:
+        fn backward(prev: Pointer[Value], grad: Float32):
+            prev[0].grad[] += exp(prev[0].data[]) * grad
+
+        var val = Value(exp(self.data[]))
+        val._prev = pointer_init(self)
+        val._n_prev = 1
+        val._backward = backward
+        return val
 
     fn __str__(self) -> String:
         return String('Value(data=') + self.data[] + ', grad=' + self.grad[] + ')'
