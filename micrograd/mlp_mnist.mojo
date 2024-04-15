@@ -2,6 +2,8 @@ from engine import Value, SGD
 from nn import MLP, cross_entropy
 from progress import ProgressBar
 
+from time import now
+
 
 fn main():
     # hparams
@@ -65,44 +67,15 @@ fn read_images(path: String) raises -> List[List[UInt8]]:
     var content = String('')
     with open(path, mode='r') as f:
         content = f.read()
-    # skip header
-    var i = next_instance('\n', content, 0) + 1
+    var rows = content[:-1].split('\n')[1:]
     var images = List[List[UInt8]](capacity=10000)
-    while True:
-        if i >= len(content):
-            break
-        if content[i] == '\n':
-            i += 1
-            continue
-        images.append(line_to_image(i, content))
+    for row in rows:
+        var pixel_strings = row[][2:].split(',')
+        var image = List[UInt8](capacity=28*28)
+        for pixel_string in pixel_strings:
+            image.append(atol(pixel_string[].strip()))
+        images.append(image)
     return images
-
-
-fn line_to_image(inout start_of_line: Int, content: String) raises -> List[UInt8]:
-    var image = List[UInt8](capacity=28*28)
-    # skip label
-    var i = next_instance(',', content, start_of_line) + 1
-    var val_start = i
-    while True:
-        if content[i] == ',':
-            image.append(atol(content[val_start:i]))
-            i += 1
-            val_start = i
-        elif content[i] == '\n':
-            image.append(atol(content[val_start:i].strip()))
-            i += 1
-            break
-        else:
-            i += 1
-    start_of_line = i
-    return image
-
-
-fn next_instance(char: String, content: String, current_index: Int) -> Int:
-    for i in range(current_index+1, len(content)):
-        if content[i] == char:
-            return i
-    return -1
 
 
 fn read_labels(path: String) raises -> List[Int8]:
