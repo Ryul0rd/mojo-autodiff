@@ -1,5 +1,6 @@
 from engine import Value, SGD
 from nn import MLP, cross_entropy
+from progress import ProgressBar
 
 
 fn main():
@@ -35,11 +36,11 @@ fn main():
     var iteration = 0
     for _ in range(N_EPOCHS):
         for i_train in range(len(x_train)):
-            if (i_train + 1) % 100 == 0 or i_train == 0:
+            if (i_train + 1) % 30000 == 0 or i_train == 0:
                 var total_test_loss: Float32 = 0.
                 var n_correct = 0
+                var validation_progress = ProgressBar(len(x_test), 'Validating')
                 for i_test in range(len(x_test)):
-                    print(i_test)
                     var image = image_to_values(x_test[i_test])
                     var label = int(y_test[i_test])
                     var logits = model(image)
@@ -47,6 +48,7 @@ fn main():
                     total_test_loss += loss.data[]
                     var pred = argmax(logits)
                     n_correct += 1 if pred == label else 0
+                    validation_progress.update()
                 print('Iteration ' + String(i_train) + ' Test Loss: ' + String(total_test_loss / len(x_test)))
                 print('Iteration ' + String(i_train) + ' Test Acc : ' + String(n_correct / len(x_test)))
             break
