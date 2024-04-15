@@ -13,23 +13,25 @@ fn main():
     var y_train = List[Int8]()
     var y_test = List[Int8]()
     try:
+        print('Loading training images...')
         x_train = read_images('data/mnist_train.csv')
-        print('a')
+        print('Loading test images...')
         x_test = read_images('data/mnist_test.csv')
-        print('b')
+        print('Loading training labels...')
         y_train = read_labels('data/mnist_train.csv')
-        print('c')
+        print('Loading test labels...')
         y_test = read_labels('data/mnist_test.csv')
-        print('d')
     except:
         print('Error reading data. Aborting run.')
         return
 
     # model
+    print('Initializing model')
     var model = MLP(in_features=28*28, hidden_sizes=List(32, 32), out_features=10)
+    var optimizer = SGD(model.parameters(), learning_rate=LEARNING_RATE)
 
     # train
-    var optimizer = SGD(model.parameters(), learning_rate=LEARNING_RATE)
+    print('Beginning training')
     var iteration = 0
     for _ in range(N_EPOCHS):
         for i_train in range(len(x_train)):
