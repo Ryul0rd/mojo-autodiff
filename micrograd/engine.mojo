@@ -1,25 +1,51 @@
-from collections import Set
 from math import log, exp
 
 
-@value
-@register_passable('trivial')
 struct Value:
-    var data: Pointer[Float32]
-    var grad: Pointer[Float32]
-    var _prev: Pointer[Value]
+    var data: AnyPointer[Float32]
+    var grad: AnyPointer[Float32]
+    var _prev: AnyPointer[Value]
     var _n_prev: Int
-    var _backward: fn(prev: Pointer[Value], grad: Float32) -> None
+    var _reference_count: AnyPointer[Int]
+    var _backward: fn(prev: AnyPointer[Value], grad: Float32) -> None
 
     fn __init__(inout self, data: Float32):
         self.data = pointer_init(data)
         self.grad = pointer_init[Float32](0)
-        self._prev = Pointer[Value].get_null()
+        self._prev = AnyPointer[Value]()
         self._n_prev = 0
+        self._reference_count = pointer_init(1)
         self._backward = self.noop
 
+    fn __moveinit__(inout self, owned existing: Self):
+        self.data = existing.data
+        self.grad = existing.grad
+        self._prev = existing._prev
+        self._n_prev = existing._n_prev
+        self._reference_count = existing._reference_count
+        self._backward = existing._backward
+
+    fn __copyinit__(inout self, existing: Self):
+        existing._reference_count[] += 1
+        self.data = existing.data
+        self.grad = existing.grad
+        self._prev = existing._prev
+        self._n_prev = existing._n_prev
+        self._reference_count = existing._reference_count
+        self._backward = existing._backward
+
+    fn __del__(owned self):
+        self._reference_count[] -= 1
+        if self._reference_count[] == 0:
+            for i in range(self._n_prev):
+                _ = (self._prev + i).take_value()
+            self.data.free()
+            self.grad.free()
+            self._prev.free()
+            self._reference_count.free()
+
     @staticmethod
-    fn noop(prev: Pointer[Value], grad: Float32):
+    fn noop(prev: AnyPointer[Value], grad: Float32):
         pass
 
     fn backward(inout self):
@@ -57,7 +83,7 @@ struct Value:
         return False
 
     fn __add__(self, rhs: Value) -> Value:
-        fn backward(prev: Pointer[Value], grad: Float32):
+        fn backward(prev: AnyPointer[Value], grad: Float32):
             prev[0].grad[] += grad
             prev[1].grad[] += grad
 
@@ -68,7 +94,7 @@ struct Value:
         return val
 
     fn __sub__(self, rhs: Value) -> Value:
-        fn backward(prev: Pointer[Value], grad: Float32):
+        fn backward(prev: AnyPointer[Value], grad: Float32):
             prev[0].grad[] += grad
             prev[1].grad[] -= grad
 
@@ -82,7 +108,7 @@ struct Value:
         return Value(0) - self
 
     fn __mul__(self, rhs: Value) -> Value:
-        fn backward(prev: Pointer[Value], grad: Float32):
+        fn backward(prev: AnyPointer[Value], grad: Float32):
             prev[0].grad[] += grad * prev[1].data[]
             prev[1].grad[] += grad * prev[0].data[]
 
@@ -93,7 +119,7 @@ struct Value:
         return val
 
     fn __truediv__(self, rhs: Value) -> Value:
-        fn backward(prev: Pointer[Value], grad: Float32):
+        fn backward(prev: AnyPointer[Value], grad: Float32):
             prev[0].grad[] += grad / prev[1].data[]
             prev[1].grad[] += grad * prev[0].data[]
 
@@ -104,7 +130,7 @@ struct Value:
         return val
 
     fn __pow__(self, rhs: Value) -> Value:
-        fn backward(prev: Pointer[Value], grad: Float32):
+        fn backward(prev: AnyPointer[Value], grad: Float32):
             var base = prev[0].data[]
             var exponent = prev[1].data[]
             prev[0].grad[] += grad * exponent * base ** (exponent - 1)
@@ -120,7 +146,7 @@ struct Value:
         return self ** Value(rhs)
 
     fn min(self, x: Value) -> Value:
-        fn backward(prev: Pointer[Value], grad: Float32):
+        fn backward(prev: AnyPointer[Value], grad: Float32):
             if prev[0].data[] < prev[1].data[]:
                 prev[0].grad[] += grad
             else:
@@ -136,7 +162,7 @@ struct Value:
         return self.min(Value(x))
 
     fn max(self, x: Value) -> Value:
-        fn backward(prev: Pointer[Value], grad: Float32):
+        fn backward(prev: AnyPointer[Value], grad: Float32):
             if prev[0].data[] > prev[1].data[]:
                 prev[0].grad[] += grad
             else:
@@ -152,7 +178,7 @@ struct Value:
         return self.max(Value(x))
 
     fn log(self) -> Value:
-        fn backward(prev: Pointer[Value], grad: Float32):
+        fn backward(prev: AnyPointer[Value], grad: Float32):
             prev[0].grad[] += 1 / prev[0].data[] * grad
 
         var val = Value(log(self.data[]))
@@ -162,7 +188,7 @@ struct Value:
         return val
 
     fn exp(self) -> Value:
-        fn backward(prev: Pointer[Value], grad: Float32):
+        fn backward(prev: AnyPointer[Value], grad: Float32):
             prev[0].grad[] += exp(prev[0].data[]) * grad
 
         var val = Value(exp(self.data[]))
@@ -213,8 +239,8 @@ struct SGD:
             self.params[i].grad[] = 0
 
 
-fn pointer_init[T: AnyRegType](*args: T) -> Pointer[T]:
-    var ptr = Pointer[T].alloc(len(args))
+fn pointer_init[T: CollectionElement](*args: T) -> AnyPointer[T]:
+    var ptr = AnyPointer[T].alloc(len(args))
     for i in range(len(args)):
         ptr[i] = args[i]
     return ptr

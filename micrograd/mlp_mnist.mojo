@@ -39,13 +39,9 @@ fn main():
                 for i_test in range(len(x_test)):
                     print(i_test)
                     var image = image_to_values(x_test[i_test])
-                    print('got here')
                     var label = int(y_test[i_test])
-                    print('got here')
                     var logits = model(image)
-                    print('got here')
                     var loss = cross_entropy(logits, label)
-                    print('got here')
                     total_test_loss += loss.data[]
                     var pred = argmax(logits)
                     n_correct += 1 if pred == label else 0
