@@ -1,4 +1,6 @@
 from engine import Value
+from math import sqrt
+from random import randn_float64
 
 
 @value
@@ -9,8 +11,9 @@ struct Neuron:
     fn __init__(inout self, in_features: Int):
         self.bias = Value(0)
         self.weights = List[Value]()
+        var kaiming_variance = sqrt(2 / in_features)
         for _ in range(in_features):
-            self.weights.append(Value(0))
+            self.weights.append(Value(randn_float64(0, kaiming_variance)))
         
     fn __call__(self, x: List[Value]) -> Value:
         return self.forward(x)
