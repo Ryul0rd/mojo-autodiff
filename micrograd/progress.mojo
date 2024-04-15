@@ -14,11 +14,6 @@ struct ProgressBar:
         self.ncols = ncols
         self.draw()
 
-    fn update(inout self, increment: Int=1):
-        self.current += increment
-        print('\x1b[1A\x1b[2K', end='')
-        self.draw()
-
     fn draw(self):
         var bar_head = String('')
         var space_remaining = self.ncols
@@ -39,6 +34,14 @@ struct ProgressBar:
         var bar_trunk = String('#') * fully_filled + String(' ') * (trunk_size - fully_filled)
 
         print(bar_head + bar_trunk + bar_tail)
+
+    fn update(inout self, increment: Int=1):
+        self.current += increment
+        self.remove_last_line()
+        self.draw()
+
+    fn remove_last_line(self):
+        print('\x1b[1A\x1b[2K', end='')
 
     fn n_digits(self, owned int: Int) -> Int:
         var n = 1

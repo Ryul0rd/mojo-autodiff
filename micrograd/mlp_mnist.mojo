@@ -30,18 +30,19 @@ fn main():
 
     # model
     print('Initializing model')
-    var model = MLP(in_features=28*28, hidden_sizes=List(32, 32), out_features=10)
+    var model = MLP(in_features=28*28, hidden_sizes=List(32, 16), out_features=10)
     var optimizer = SGD(model.parameters(), learning_rate=LEARNING_RATE)
 
     # train
     print('Beginning training')
     var iteration = 0
     for _ in range(N_EPOCHS):
+        var training_progress = ProgressBar(len(x_train), desc='Training')
         for i_train in range(len(x_train)):
             if (i_train + 1) % 30000 == 0 or i_train == 0:
                 var total_test_loss: Float32 = 0.
                 var n_correct = 0
-                var validation_progress = ProgressBar(len(x_test), 'Validating')
+                var validation_progress = ProgressBar(len(x_test), desc='Validating')
                 for i_test in range(len(x_test)):
                     var image = image_to_values(x_test[i_test])
                     var label = int(y_test[i_test])
@@ -51,9 +52,18 @@ fn main():
                     var pred = argmax(logits)
                     n_correct += 1 if pred == label else 0
                     validation_progress.update()
+                validation_progress.remove_last_line()
                 print('Iteration ' + String(i_train) + ' Test Loss: ' + String(total_test_loss / len(x_test)))
                 print('Iteration ' + String(i_train) + ' Test Acc : ' + String(n_correct / len(x_test)))
-            break
+                print()
+            var image = image_to_values(x_train[i_train])
+            var label = int(y_train[i_train])
+            var logits = model(image)
+            var loss = cross_entropy(logits, label)
+            loss.backward()
+            optimizer.step()
+            optimizer.zero_grad()
+            training_progress.update()
 
 
 fn image_to_values(image: List[UInt8]) -> List[Value]:
