@@ -1,6 +1,7 @@
 from math import log, exp
 
 
+@value
 struct Value:
     var data: AnyPointer[Float32]
     var grad: AnyPointer[Float32]
@@ -16,14 +17,6 @@ struct Value:
         self._n_prev = 0
         self._reference_count = pointer_init(1)
         self._backward = self.noop
-
-    fn __moveinit__(inout self, owned existing: Self):
-        self.data = existing.data
-        self.grad = existing.grad
-        self._prev = existing._prev
-        self._n_prev = existing._n_prev
-        self._reference_count = existing._reference_count
-        self._backward = existing._backward
 
     fn __copyinit__(inout self, existing: Self):
         existing._reference_count[] += 1
