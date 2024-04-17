@@ -89,7 +89,7 @@ struct MLP:
         var current = x
         for i in range(len(self.layers)):
             current = self.layers[i](current)
-            if i+1 == len(self.layers):
+            if i+1 != len(self.layers):
                 current = relu(current)
         return current
 
