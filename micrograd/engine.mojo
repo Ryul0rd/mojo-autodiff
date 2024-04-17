@@ -218,6 +218,16 @@ struct Value:
         return self.data[] < rhs
 
 
+fn argmax(vec: List[Value]) -> Int:
+    var highest_index = -1
+    var highest_value = Float32.MIN_FINITE
+    for i in range(len(vec)):
+        if vec[i] > highest_value:
+            highest_value = vec[i].data[]
+            highest_index = i
+    return highest_index
+
+
 @value
 struct SGD:
     var params: List[Value]
