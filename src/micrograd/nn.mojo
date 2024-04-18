@@ -1,4 +1,4 @@
-from engine import Value, argmax
+from micrograd.engine import Value, argmax
 from math import sqrt
 from random import randn_float64
 

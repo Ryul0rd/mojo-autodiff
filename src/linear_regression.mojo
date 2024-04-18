@@ -1,5 +1,5 @@
-from engine import Value, SGD
-from nn import mse
+from micrograd.engine import Value, SGD
+from micrograd.nn import mse
 from random import random_float64
 
 

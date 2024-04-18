@@ -1,6 +1,6 @@
-from engine import Value, SGD, argmax
-from nn import MLP, cross_entropy
-from progress import ProgressBar
+from micrograd.engine import Value, SGD, argmax
+from micrograd.nn import MLP, cross_entropy
+from micrograd.progress import ProgressBar
 
 from math import sin, cos
 from random import random_float64, randn_float64, random_si64, seed
