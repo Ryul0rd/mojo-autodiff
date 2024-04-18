@@ -1,4 +1,4 @@
-from engine import Value
+from engine import Value, argmax
 from math import sqrt
 from random import randn_float64
 
@@ -98,6 +98,16 @@ struct MLP:
         for layer in self.layers:
             params.extend(layer[].parameters())
         return params
+    
+    fn print_params(self):
+        for i_layer in range(len(self.layers)):
+            print(String('Layer ') + i_layer)
+            for i_neuron in range(len(self.layers[i_layer].neurons)):
+                var neuron = self.layers[i_layer].neurons[i_neuron]
+                for i_w in range(len(neuron.weights)):
+                    print(String('Neuron ') + i_neuron + ' weight ' + i_w + ': ' + neuron.weights[i_w])
+                print(String('Neuron ') + i_neuron + ' bias: ' + neuron.bias)
+            print()
 
 
 fn relu(x: Value) -> Value:
@@ -116,7 +126,21 @@ fn mse(pred: Value, true: Value) -> Value:
 
 
 fn cross_entropy(logits: List[Value], true: Int) -> Value:
-    return neg_log_likelihood(softmax(logits), true)
+    var max_logit = logits[argmax(logits)]
+    var log_sum_exp = Value(0)
+    for logit in logits:
+        log_sum_exp = log_sum_exp + (logit[] - max_logit).exp()
+    log_sum_exp = max_logit + log_sum_exp.log()
+    var xe = -logits[true] + log_sum_exp
+    return xe
+
+
+fn log_softmax(logits: List[Value]) -> List[Value]:
+    var sm = softmax(logits)
+    var log_sm = List[Value](capacity=len(sm))
+    for val in sm:
+        log_sm.append(val[].log())
+    return log_sm
 
 
 fn softmax(logits: List[Value]) -> List[Value]:
